@@ -7,7 +7,7 @@ return (
         <img
             src="https://i.ibb.co/7d92C2FT/Gemini-Generated-Image-7ayl847ayl847ayl.png"
             alt="Banner Background"
-            className="absolute inset-0 w-full h-full object-cover opacity-60"
+            className="absolute inset-0 w-full h-full object-cover opacity-60 animate-pulse"
         />
         <div className="absolute inset-0 bg-black/70"></div>
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between w-full max-w-7xl px-8">
@@ -28,10 +28,22 @@ return (
                 <img
                     src="https://i.ibb.co/7d92C2FT/Gemini-Generated-Image-7ayl847ayl847ayl.png"
                     alt="B2B Logistics"
-                    className="w-[500px] h-[500px] object-cover rounded-2xl shadow-2xl border-4 border-white/30"
+                    className="w-[500px] h-[500px] object-cover rounded-2xl shadow-2xl border-4 border-white/30 animate-float"
                 />
             </div>
         </div>
+        <style>
+            {`
+                @keyframes float {
+                    0% { transform: translateY(0px);}
+                    50% { transform: translateY(-20px);}
+                    100% { transform: translateY(0px);}
+                }
+                .animate-float {
+                    animation: float 3s ease-in-out infinite;
+                }
+            `}
+        </style>
     </section>
 );
 };
