@@ -1,12 +1,15 @@
-import React from "react";
-import { FaShoppingCart } from "react-icons/fa";
+import React, { use } from "react";
+import { FaRegUserCircle, FaShoppingCart } from "react-icons/fa";
 import { IoMenu } from "react-icons/io5";
 import { Link, NavLink } from "react-router";
 import "./Navbar.css";
+import { Authconext } from "../../Context/AuthContext/AuthContext";
 
 const Navbar = () => {
+  const { logOut, user } = use(Authconext);
   // Reference for the drawer checkbox
   const drawerRef = React.useRef(null);
+  console.log(user);
 
   // Function to close the drawer
   const closeDrawer = () => {
@@ -41,16 +44,32 @@ const Navbar = () => {
                 <ul className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
                   <li>
                     <div className="flex flex-col items-center py-4 border-b mb-4">
-                      <img
-                        src="https://i.ibb.co/wFpwy1dq/Gemini-Generated-Image-blwhytblwhytblwh.png"
-                        alt="Profile"
-                        className="w-16 h-16 rounded-full mb-2"
-                      />
-                      <span className="font-semibold text-lg">John Doe</span>
-                      <span className="text-sm text-gray-500">johndoe@email.com</span>
-                      <Link className="btn btn-primary btn-sm mt-3 w-full" to="/profile" onClick={closeDrawer}>
-                        View Profile
-                      </Link>
+                      {user ? (
+                        <img
+                          src={user?.photoURL}
+                          alt="Profile"
+                          className="w-16 h-16 rounded-full mb-2"
+                        />
+                      ) : (
+                        <FaRegUserCircle size={64} />
+                      )}
+                      <span className="font-semibold text-center text-lg">
+                        {user?.displayName || "No User"}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {user?.email}
+                      </span>
+                      {user ? (
+                        <Link
+                          className="btn btn-primary btn-sm mt-3 w-full"
+                          to="/profile"
+                          onClick={closeDrawer}
+                        >
+                          View Profile
+                        </Link>
+                      ) : (
+                        ""
+                      )}
                     </div>
                   </li>
                   <li>
@@ -77,6 +96,38 @@ const Navbar = () => {
                     <NavLink to="/myProducts" onClick={closeDrawer}>
                       My Products
                     </NavLink>
+                  </li>
+                  <li>
+                    {user ? (
+                      <NavLink
+                      className={"btn btn-primary btn-sm w-full"}
+                        onClick={() => {
+                          closeDrawer();
+                          logOut();
+                        }}
+                      >
+                        LogOut
+                      </NavLink>
+                    ) : (
+                      <div className="flex flex-col items-start gap-2">
+                        <NavLink
+                          to="/login"
+                          onClick={() => {
+                            closeDrawer();
+                          }}
+                        >
+                          Login
+                        </NavLink>
+                        <NavLink
+                          to="/register"
+                          onClick={() => {
+                            closeDrawer();
+                          }}
+                        >
+                          Register
+                        </NavLink>
+                      </div>
+                    )}
                   </li>
                 </ul>
               </div>
@@ -126,13 +177,27 @@ const Navbar = () => {
             <Link>
               <FaShoppingCart color="black" size={30} />
             </Link>
-          </div>
-          <div className="md:flex gap-5 items-center hidden">
-            <Link className="btn btn-primary rounded-4xl">Log out</Link>
-          </div>
-          <div className="hidden md:flex gap-2 md:gap-5">
-            <Link className="btn btn-primary rounded-4xl">Login</Link>
-            <Link className="btn btn-primary rounded-4xl">Register</Link>
+            {user ? (
+              <div className="md:flex gap-5 items-center hidden">
+                <img
+                  className="w-[50px] rounded-full"
+                  src={user?.photoURL}
+                  alt={user?.displayName}
+                />
+                <Link className="btn btn-primary rounded-4xl" onClick={logOut}>
+                  Log out
+                </Link>
+              </div>
+            ) : (
+              <div className="hidden md:flex gap-2 md:gap-5">
+                <Link className="btn btn-primary rounded-4xl" to="/login">
+                  Login
+                </Link>
+                <Link className="btn btn-primary rounded-4xl" to="/register">
+                  Register
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

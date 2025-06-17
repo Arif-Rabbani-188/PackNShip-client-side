@@ -135,11 +135,18 @@ const Products = () => {
                                         <span className="text-green-600 font-bold text-xl">{product.price}</span>
                                     )}
                                 </div>
-                                <button
-                                    className="mt-4 px-6 py-2 bg-gradient-to-r from-green-600 to-gray-900 text-white rounded-md font-bold text-base shadow-md transition-transform duration-200 active:scale-95"
-                                >
-                                    Add to Cart
-                                </button>
+                                <div className="mt-4 flex justify-between flex-row-reverse gap-2">
+                                    <button
+                                        className="px-6 py-2 bg-gradient-to-r from-green-600 to-gray-900 text-white rounded-md font-bold text-base shadow-md transition-transform duration-200 active:scale-95"
+                                    >
+                                        Add to Cart
+                                    </button>
+                                    <button
+                                        className="px-6 py-2 bg-white border border-green-600 text-green-700 rounded-md font-bold text-base shadow-sm hover:bg-green-50 transition-colors duration-200"
+                                    >
+                                        Details
+                                    </button>
+                                </div>
                             </div>
                         );
                     })}

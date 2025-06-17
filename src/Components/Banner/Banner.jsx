@@ -3,7 +3,7 @@ import { FaArrowRight } from "react-icons/fa";
 
 const Banner = () => {
 return (
-    <section className="mt-18 relative w-full h-[800px] flex items-center justify-center bg-gray-900 overflow-hidden">
+    <section className="mt-16 md:mt-20 relative w-full h-[800px] flex items-center justify-center bg-gray-900 overflow-hidden">
         <img
             src="https://i.ibb.co/7d92C2FT/Gemini-Generated-Image-7ayl847ayl847ayl.png"
             alt="Banner Background"

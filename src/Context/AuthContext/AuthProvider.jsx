@@ -8,19 +8,40 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import auth from "../../Firebase/Firebase.init";
+import Swal from "sweetalert2";
 
 const AuthProvider = ({ children }) => {
-    const GoogleProvider = new GoogleAuthProvider();
-    const signInWithGoogle =()=>{
-        return signInWithPopup(auth, GoogleProvider);
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-        console.log("User state changed", user);
+  const [user, setUser] = useState(null);
+  const GoogleProvider = new GoogleAuthProvider();
+  const signInWithGoogle = () => {
+    return signInWithPopup(auth, GoogleProvider).then((result) => {
+      Swal.fire({
+        title: "Login Successful",
+        icon: "success",
+        draggable: false,
+      });
     });
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("User state changed", user);
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const userInfo = {
     signInWithGoogle,
-    
+    logOut: async () => {
+      const result_1 = await auth.signOut();
+      Swal.fire({
+        title: "Logout Successful",
+        icon: "success",
+        draggable: false,
+      });;
+    },
+    user,
   };
 
   return <Authconext value={userInfo}>{children}</Authconext>;
