@@ -16,7 +16,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="bg-gradient-to-r from-black/10 to-gray-300 shadow-md z-50 relative">
+    <div className="bg-gradient-to-r from-black/10 to-gray-300 shadow-md z-50 fixed top-0 left-0 w-full backdrop-blur-md">
       <div className="flex justify-between items-center p-4 text-white md:w-11/12 mx-auto">
         <div className="flex gap-5 items-center">
           <div className="flex md:hidden">
