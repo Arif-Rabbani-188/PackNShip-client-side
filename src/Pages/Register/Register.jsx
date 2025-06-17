@@ -1,8 +1,11 @@
-import React from "react";
+import React, { use } from "react";
 import { useState } from "react";
 import Swal from "sweetalert2";
+import { Authconext } from "../../Context/AuthContext/AuthContext";
 
 const Register = () => {
+
+    const {  createUserWithEmail } = use(Authconext);
   const [form, setForm] = useState(null);
 
   const handleSubmit = (e) => {
@@ -26,9 +29,9 @@ const Register = () => {
       });
         return;
     }
-    alert("Registered successfully!");
     const newForm = { name, photoURL, email, password, confirmPassword };
     setForm(newForm);
+    createUserWithEmail(email, password, photoURL, name);
     console.log(newForm);
   };
 

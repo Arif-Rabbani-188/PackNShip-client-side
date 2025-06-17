@@ -6,6 +6,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
+  updateProfile,
 } from "firebase/auth";
 import auth from "../../Firebase/Firebase.init";
 import Swal from "sweetalert2";
@@ -21,6 +22,32 @@ const AuthProvider = ({ children }) => {
         draggable: false,
       });
     });
+  };
+
+  const createUserWithEmail = async (email, password, photoURL, name) => {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    Swal.fire({
+      title: "Registration Successful",
+      icon: "success",
+      draggable: false,
+    });
+    await updateProfile(result.user, {
+      displayName: name,
+      photoURL: photoURL,
+    });
+    setUser(result.user);
+    window.location.reload();
+  };
+
+  const signInWithEmail = async (email, password) => {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    Swal.fire({
+      title: "Login Successful",
+      icon: "success",
+      draggable: false,
+    });
+    setUser(result.user);
+    window.location.reload();
   };
 
   useEffect(() => {
@@ -42,6 +69,8 @@ const AuthProvider = ({ children }) => {
       });;
     },
     user,
+    createUserWithEmail,
+    signInWithEmail,
   };
 
   return <Authconext value={userInfo}>{children}</Authconext>;

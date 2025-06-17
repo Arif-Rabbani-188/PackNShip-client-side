@@ -3,18 +3,26 @@ import { Authconext } from '../../Context/AuthContext/AuthContext';
 
 const Login = () => {
 
-    const {signInWithGoogle} = use(Authconext);
+    const {signInWithGoogle, signInWithEmail} = use(Authconext);
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const email = e.target.email.value;
+        const password = e.target.password.value;
+        signInWithEmail(email, password);
+    };
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen font-sans bg-gradient-to-br from-blue-50 to-blue-100 px-2">
             <div className="bg-white p-6 sm:p-8 md:p-10 rounded-2xl shadow-2xl w-full max-w-md flex flex-col items-center gap-6">
                 <h2 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-2">Login</h2>
                 <p className="text-gray-500 mb-4 text-center text-sm sm:text-base">Login to your PackNShip account</p>
-                <form className="w-full flex flex-col gap-4 sm:gap-5">
+                <form className="w-full flex flex-col gap-4 sm:gap-5" onSubmit={handleSubmit}>
                     <div className="flex flex-col gap-1.5">
                         <label htmlFor="email" className="font-medium text-gray-700 text-sm sm:text-base">Email</label>
                         <input
                             type="email"
                             id="email"
+                            name="email"
                             placeholder="Enter your email"
                             className="px-3 py-2 sm:px-4 rounded-lg border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                             required
@@ -25,6 +33,7 @@ const Login = () => {
                         <input
                             type="password"
                             id="password"
+                            name="password"
                             placeholder="Enter your password"
                             className="px-3 py-2 sm:px-4 rounded-lg border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                             required
