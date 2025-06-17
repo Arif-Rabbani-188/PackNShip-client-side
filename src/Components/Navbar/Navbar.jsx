@@ -4,13 +4,28 @@ import { IoMenu } from "react-icons/io5";
 import { Link, NavLink } from "react-router";
 
 const Navbar = () => {
+  // Reference for the drawer checkbox
+  const drawerRef = React.useRef(null);
+
+  // Function to close the drawer
+  const closeDrawer = () => {
+    if (drawerRef.current) {
+      drawerRef.current.checked = false;
+    }
+  };
+
   return (
-    <div className="bg-gradient-to-r from-black/10 to-gray-300 shadow-md">
+    <div className="bg-gradient-to-r from-black/10 to-gray-300 shadow-md z-50 relative">
       <div className="flex justify-between items-center p-4 text-white md:w-11/12 mx-auto">
         <div className="flex gap-5 items-center">
           <div className="flex md:hidden">
             <div className="drawer">
-              <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+              <input
+                id="my-drawer"
+                type="checkbox"
+                className="drawer-toggle"
+                ref={drawerRef}
+              />
               <div className="drawer-content">
                 <label htmlFor="my-drawer" className="drawer-button">
                   <IoMenu size={30} />
@@ -24,19 +39,19 @@ const Navbar = () => {
                 ></label>
                 <ul className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
                   <li>
-                    <NavLink to="/">Home</NavLink>
+                    <NavLink to="/" onClick={closeDrawer}>Home</NavLink>
                   </li>
                   <li>
-                    <NavLink to="/">Catagories</NavLink>
+                    <NavLink to="/" onClick={closeDrawer}>Catagories</NavLink>
                   </li>
                   <li>
-                    <NavLink to="/">All Products</NavLink>
+                    <NavLink to="/" onClick={closeDrawer}>All Products</NavLink>
                   </li>
                   <li>
-                    <NavLink to="/">Add Product</NavLink>
+                    <NavLink to="/" onClick={closeDrawer}>Add Product</NavLink>
                   </li>
                   <li>
-                    <NavLink to="/">My Products</NavLink>
+                    <NavLink to="/" onClick={closeDrawer}>My Products</NavLink>
                   </li>
                 </ul>
               </div>
