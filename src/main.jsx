@@ -9,6 +9,7 @@ import AuthProvider from './Context/AuthContext/AuthProvider.jsx'
 import Error from './Components/Error/Error.jsx'
 import Login from './Pages/Login/Login.jsx'
 import Register from './Pages/Register/Register.jsx'
+import Profile from './Pages/Profile/Profile.jsx'
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: <Register></Register>
+      },
+      {
+        path: "profile",
+        element: <Profile></Profile>
       }
       ,
       {

@@ -179,11 +179,13 @@ const Navbar = () => {
             </Link>
             {user ? (
               <div className="md:flex gap-5 items-center hidden">
+                <Link to="/profile">
                 <img
                   className="w-[50px] rounded-full"
                   src={user?.photoURL}
                   alt={user?.displayName}
                 />
+                </Link>
                 <Link className="btn btn-primary rounded-4xl" onClick={logOut}>
                   Log out
                 </Link>

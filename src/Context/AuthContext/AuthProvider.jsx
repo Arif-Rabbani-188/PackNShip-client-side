@@ -41,13 +41,13 @@ const AuthProvider = ({ children }) => {
 
   const signInWithEmail = async (email, password) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    Swal.fire({
+    setUser(result.user);
+    await Swal.fire({
       title: "Login Successful",
       icon: "success",
       draggable: false,
     });
-    setUser(result.user);
-    window.location.reload();
+    // No need to reload the page; state update will trigger re-render
   };
 
   useEffect(() => {
@@ -66,7 +66,8 @@ const AuthProvider = ({ children }) => {
         title: "Logout Successful",
         icon: "success",
         draggable: false,
-      });;
+      });
+      setUser(null);
     },
     user,
     createUserWithEmail,
