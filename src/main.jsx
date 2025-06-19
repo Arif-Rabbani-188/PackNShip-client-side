@@ -18,6 +18,7 @@ import MyProducts from './Pages/MyProducts/MyProducts.jsx'
 import Detail from './Pages/DetailPage/Detail.jsx'
 import Cart from './Pages/Cart/Cart.jsx'
 import Edit from './Pages/Edit/Edit.jsx'
+import PrivateRoute from './Router/PrivateRoute.jsx'
 
 const router = createBrowserRouter([
   {
@@ -43,7 +44,9 @@ const router = createBrowserRouter([
       }
       ,{
           path: "addProduct",
-          element: <AddProduct></AddProduct>
+          element: <PrivateRoute>
+            <AddProduct></AddProduct>
+          </PrivateRoute>
       },
       {
         path: "edit/:id",
@@ -51,11 +54,15 @@ const router = createBrowserRouter([
       },
       {
         path: "allProducts",
-        element: <AllProducts></AllProducts>
+        element: <PrivateRoute>
+          <AllProducts></AllProducts>
+        </PrivateRoute>
       },
       {
         path: "allProducts/:id",
-        element: <Detail></Detail>
+        element: <PrivateRoute>
+          <Detail></Detail>
+        </PrivateRoute>
       },
       {
         path: "catagories",
@@ -67,7 +74,9 @@ const router = createBrowserRouter([
       },
       {
         path: "myProducts",
-        element: <MyProducts></MyProducts>
+        element: <PrivateRoute>
+          <MyProducts></MyProducts>
+        </PrivateRoute>
       },
       {
         path: '*',

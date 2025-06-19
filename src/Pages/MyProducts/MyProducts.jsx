@@ -1,28 +1,24 @@
 import { useEffect, useState, useContext } from "react";
 import { Authconext } from "../../Context/AuthContext/AuthContext";
 import { Link } from "react-router";
+import axios from "axios";
 
 const MyProducts = () => {
   const { user } = useContext(Authconext);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch("https://pick-ns-hiip-serversite.vercel.app/products")
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          const userProducts = data.filter(
-            (product) => product.email === user?.email
-          );
-          setProducts(userProducts);
-        } else {
-          console.error("Unexpected data format:", data);
-          setProducts([]);
-        }
-      })
-      .catch((error) => console.error("Error fetching products:", error))
-      .finally(() => setLoading(false));
+ useEffect(() => {
+    axios.get(`https://pick-ns-hiip-serversite.vercel.app/myProducts?email=${user?.email}`)
+        .then((response) => {
+            const fetchedProducts = response.data;
+            setProducts(fetchedProducts);
+            setLoading(false);
+        })
+        .catch((error) => {
+            console.error("Error fetching products:", error);
+            setLoading(false);
+        });
   }, [user?.email]);
 
   if (loading)

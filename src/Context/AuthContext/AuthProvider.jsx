@@ -39,7 +39,7 @@ const AuthProvider = ({ children }) => {
     window.location.reload();
   };
 
-  const signInWithEmail = async (email, password) => {
+  const signInWithEmail = async (email, password , from) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
     setUser(result.user);
     await Swal.fire({
