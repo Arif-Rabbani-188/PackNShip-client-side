@@ -15,6 +15,11 @@ const AllProducts = () => {
         product.name?.toLowerCase().includes(search.toLowerCase())
     );
 
+    const handleDetailClick = (id) => {
+        // Navigate to the product detail page
+        window.location.href = `/allProducts/${id}`;
+    };
+
     return (
         <div className="mt-18 all-products-page py-10 px-20 mx-auto bg-gradient-to-br from-blue-50 to-white min-h-screen">
             <h1 className="text-4xl font-extrabold mb-8 text-blue-700 tracking-tight text-center drop-shadow-lg">
@@ -33,7 +38,7 @@ const AllProducts = () => {
                 {filteredProducts.length > 0 ? (
                     filteredProducts.map(product => (
                         <div
-                            key={product.id}
+                            key={product._id}
                             className="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col border border-blue-100 hover:shadow-2xl hover:scale-105 transition-transform duration-200"
                         >
                             {product.image && (
@@ -48,7 +53,7 @@ const AllProducts = () => {
                                 <p className="text-gray-500 mb-4 flex-1">{product.short_description}</p>
                                 <div className="flex items-center justify-between mt-auto">
                                     <span className="text-xl font-bold text-blue-600">{product.price} Taka</span>
-                                    <button className="px-5 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg font-semibold shadow hover:from-blue-600 hover:to-blue-800 transition">
+                                    <button className="px-5 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg font-semibold shadow hover:from-blue-600 hover:to-blue-800 transition" onClick={() => handleDetailClick(product._id)}>
                                         View Details
                                     </button>
                                 </div>

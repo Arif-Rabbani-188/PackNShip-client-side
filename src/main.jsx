@@ -15,6 +15,8 @@ import AllProducts from './Pages/AllProducts/AllProducts.jsx'
 import Catagories from './Pages/Catagories/Catagories.jsx'
 import Catagory from './Pages/Catagories/Catagory.jsx'
 import MyProducts from './Pages/MyProducts/MyProducts.jsx'
+import Detail from './Pages/DetailPage/Detail.jsx'
+import Cart from './Pages/Cart/Cart.jsx'
 
 const router = createBrowserRouter([
   {
@@ -33,6 +35,10 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <Profile></Profile>
+      },
+      {
+        path: 'cart',
+        element:<Cart></Cart>
       }
       ,{
           path: "addProduct",
@@ -41,6 +47,10 @@ const router = createBrowserRouter([
       {
         path: "allProducts",
         element: <AllProducts></AllProducts>
+      },
+      {
+        path: "allProducts/:id",
+        element: <Detail></Detail>
       },
       {
         path: "catagories",

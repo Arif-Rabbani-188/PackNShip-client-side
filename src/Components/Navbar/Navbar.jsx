@@ -18,6 +18,8 @@ const Navbar = () => {
     }
   };
 
+  const product = JSON.parse(localStorage.getItem("product")) || [];
+
   return (
     <div className="bg-gradient-to-r from-black/10 to-gray-300 shadow-md z-50 fixed top-0 left-0 w-full backdrop-blur-md">
       <div className="flex justify-between items-center p-4 text-white md:w-11/12 mx-auto">
@@ -100,7 +102,7 @@ const Navbar = () => {
                   <li>
                     {user ? (
                       <NavLink
-                      className={"btn btn-primary btn-sm w-full"}
+                        className={"btn btn-primary btn-sm w-full"}
                         onClick={() => {
                           closeDrawer();
                           logOut();
@@ -174,17 +176,20 @@ const Navbar = () => {
         </div>
         <div className="flex gap-5">
           <div className="flex items-center gap-5">
-            <Link>
+            <div className="indicator">
+              <span className="indicator-item badge badge-secondary">{product.length}</span>
+              <Link to="cart">
               <FaShoppingCart color="black" size={30} />
             </Link>
+            </div>
             {user ? (
               <div className="md:flex gap-5 items-center hidden">
                 <Link to="/profile">
-                <img
-                  className="w-[50px] rounded-full"
-                  src={user?.photoURL}
-                  alt={user?.displayName}
-                />
+                  <img
+                    className="w-[50px] rounded-full"
+                    src={user?.photoURL}
+                    alt={user?.displayName}
+                  />
                 </Link>
                 <Link className="btn btn-primary rounded-4xl" onClick={logOut}>
                   Log out
