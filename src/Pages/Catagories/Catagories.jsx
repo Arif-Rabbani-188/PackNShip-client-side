@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaLaptop, FaTshirt, FaMobileAlt, FaCouch, FaAppleAlt, FaBoxOpen } from 'react-icons/fa';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 const Catagories = () => {
     const [products, setProducts] = useState([]);
@@ -12,13 +12,6 @@ const Catagories = () => {
             .then(data => setProducts(data))
             .catch(error => console.error('Error fetching products:', error));
     }, []);
-
-    const handleCatagoryClick = (category) => {
-        // Handle category click logic here, e.g., navigate to a category page or filter products
-        console.log(`Category clicked: ${category}`);
-        window.location.href = `/catagories/${category}`;
-        
-    };
 
     const categoryIcons = {
         electronics: <FaLaptop className="text-3xl text-blue-500" />,
@@ -35,8 +28,8 @@ const Catagories = () => {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
                 {[...new Set(products.map(product => product.category))].map(category => (
-                    <div
-                        onClick={() => handleCatagoryClick(category)}
+                    <Link
+                        to={`/catagories/${category}`}
                         key={category}
                         className="bg-white rounded-2xl shadow-lg p-10 flex flex-col items-center justify-center text-xl text-gray-700 font-semibold cursor-pointer transition-all duration-200 hover:bg-gradient-to-tr hover:from-purple-100 hover:to-blue-100 hover:shadow-2xl hover:-translate-y-2 hover:scale-105 border border-gray-100"
                     >
@@ -44,7 +37,7 @@ const Catagories = () => {
                             {categoryIcons[category.toLowerCase()] || <FaBoxOpen className="text-3xl text-blue-500" />}
                         </div>
                         <span className="tracking-wide">{category}</span>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </div>

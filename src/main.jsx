@@ -17,6 +17,7 @@ import Catagory from './Pages/Catagories/Catagory.jsx'
 import MyProducts from './Pages/MyProducts/MyProducts.jsx'
 import Detail from './Pages/DetailPage/Detail.jsx'
 import Cart from './Pages/Cart/Cart.jsx'
+import Edit from './Pages/Edit/Edit.jsx'
 
 const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
       ,{
           path: "addProduct",
           element: <AddProduct></AddProduct>
+      },
+      {
+        path: "edit/:id",
+        element: <Edit></Edit>
       },
       {
         path: "allProducts",
