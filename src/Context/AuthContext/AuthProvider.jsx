@@ -13,14 +13,15 @@ import Swal from "sweetalert2";
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const GoogleProvider = new GoogleAuthProvider();
-  const signInWithGoogle = () => {
+  const signInWithGoogle = (from) => {
     return signInWithPopup(auth, GoogleProvider).then((result) => {
       Swal.fire({
         title: "Login Successful",
         icon: "success",
         draggable: false,
-      });
+      })
     });
   };
 
@@ -52,7 +53,7 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log("User state changed", user);
+      setLoading(false);
       setUser(user);
     });
     return () => unsubscribe();
@@ -72,6 +73,7 @@ const AuthProvider = ({ children }) => {
     user,
     createUserWithEmail,
     signInWithEmail,
+    loading,
   };
 
   return <Authconext value={userInfo}>{children}</Authconext>;

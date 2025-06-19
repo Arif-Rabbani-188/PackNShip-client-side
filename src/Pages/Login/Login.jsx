@@ -7,7 +7,7 @@ const Login = () => {
   const navigate = useNavigate();
   const from = location.state || "/";
 
-  const { signInWithGoogle, signInWithEmail } = use(Authconext);
+  const { signInWithGoogle, signInWithEmail} = use(Authconext);
   const handleSubmit = (e) => {
     e.preventDefault();
     const email = e.target.email.value;
@@ -84,7 +84,7 @@ const Login = () => {
           <button
             type="button"
             className="flex items-center justify-center gap-2 sm:gap-3 py-2 sm:py-3 bg-white border border-gray-300 rounded-lg font-semibold text-base text-gray-700 hover:bg-gray-50 shadow transition"
-            onClick={signInWithGoogle}
+            onClick={()=> signInWithGoogle(from)}
           >
             <svg className="w-5 h-5" viewBox="0 0 48 48">
               <g>
