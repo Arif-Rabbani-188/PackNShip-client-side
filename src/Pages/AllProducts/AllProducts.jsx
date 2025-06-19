@@ -5,10 +5,22 @@ const AllProducts = () => {
     const [search, setSearch] = useState('');
 
     useEffect(() => {
-        fetch('http://localhost:3000/products')
+        fetch('https://pick-ns-hiip-serversite.vercel.app/products')
             .then(response => response.json())
-            .then(data => setProducts(data))
-            .catch(error => console.error('Error fetching products:', error));
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setProducts(data);
+                } else if (Array.isArray(data.products)) {
+                    setProducts(data.products);
+                } else {
+                    setProducts([]);
+                    console.error('Unexpected data format:', data);
+                }
+            })
+            .catch(error => {
+                setProducts([]);
+                console.error('Error fetching products:', error);
+            });
     }, []);
 
     const filteredProducts = products.filter(product =>

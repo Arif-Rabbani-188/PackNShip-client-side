@@ -7,7 +7,7 @@ const Catagory = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:3000/products')
+        fetch('https://pick-ns-hiip-serversite.vercel.app/products')
             .then(response => response.json())
             .then(data => setProducts(data))
             .catch(error => console.error('Error fetching products:', error))
@@ -17,6 +17,11 @@ const Catagory = () => {
     const filteredProducts = products.filter(
         product => (product.category || 'Uncategorized') === catagory
     );
+
+    const handleDetailClick = (id) => {
+        // Navigate to the product detail page
+        window.location.href = `/allProducts/${id}`;
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-20 px-4">
@@ -56,9 +61,11 @@ const Catagory = () => {
                                     {product.name}
                                 </h3>
                                 <p className="text-purple-600 font-bold text-lg mb-2">
-                                    {product.price ? `$${product.price}` : 'Contact for price'}
+                                    {product.price ? `${product.price} Taka` : 'Contact for price'}
                                 </p>
-                                <button className="mt-auto px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium shadow transition">
+                                <button
+                                onClick={() => handleDetailClick(product._id)}
+                                 className="mt-auto px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium shadow transition">
                                     View Details
                                 </button>
                             </div>

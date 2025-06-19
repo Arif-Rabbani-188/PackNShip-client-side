@@ -7,7 +7,7 @@ const MyProducts = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch("http://localhost:3000/products")
+        fetch("https://pick-ns-hiip-serversite.vercel.app/products")
             .then((response) => response.json())
             .then((data) => {
                 const userProducts = data.filter(

@@ -13,15 +13,10 @@ const Detail = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:3000/products`)
+      .get(`https://pick-ns-hiip-serversite.vercel.app/products/${id}`)
       .then((response) => {
-        const foundProduct = response.data.find((item) => item._id === id);
-        if (foundProduct) {
-          setProduct(foundProduct);
-          setQuantity(foundProduct?.minimum_selling_quantity || 1);
-        } else {
-          console.error("Product not found");
-        }
+        setProduct(response.data);
+        setQuantity(response.data.minimum_selling_quantity || 1);
       })
       .catch((error) => {
         console.error("Error fetching product details:", error);
@@ -79,34 +74,69 @@ const Detail = () => {
           )}
         </div>
         {/* Product Details */}
-        <div className="md:w-1/2 p-8 flex flex-col justify-between">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              {product?.name || "Product Name"}
-            </h2>
-            <p className="text-gray-600 mb-4">
-              {product?.description ||
+            <div className="md:w-1/2 p-8 flex flex-col justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">
+                  Category: {product?.category || "Product Name"}
+                </h2>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  {product?.name || "Product Name"}
+                </h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">
+                  Brand: {product?.brand_name || "Product Name"}
+                </h2>
+                <p className="text-gray-600 mb-4">
+                  Description: {product?.short_description||
                 "Description of the product goes here. Include details such as features, price, and availability."}
-            </p>
-            <div className="flex items-center space-x-6 mb-4">
-              <span className="text-xl font-semibold text-purple-700">
-                ${product?.price || "99.99"}
-              </span>
-              <span className="text-sm text-gray-500">
-                <strong>Stock:</strong> {product?.stock || 20}
-              </span>
+                </p>
+                <div className="flex items-center mb-4">
+                  <span className="text-gray-600 mr-2">Rating:</span>
+                  {product?.rating ? (
+                <span className="flex items-center">
+                  {[1,2,3,4,5].map((star) => (
+                    <svg
+                      key={star}
+                      className={`w-5 h-5 ${
+                    product.rating >= star
+                      ? "text-yellow-400"
+                      : product.rating >= star - 0.5
+                      ? "text-yellow-300"
+                      : "text-gray-300"
+                      }`}
+                      fill={product.rating >= star ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <polygon
+                    points="10 15 4 18 5.5 11.5 1 7.5 7 7 10 1 13 7 19 7.5 14.5 11.5 16 18"
+                      />
+                    </svg>
+                  ))}
+                  <span className="ml-2 text-sm text-gray-700 font-medium">{parseInt(product.rating).toFixed(1)}</span>
+                </span>
+                  ) : (
+                <span className="text-gray-400">N/A</span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-6 mb-4">
+                  <span className="text-xl font-semibold text-purple-700">
+                {product?.price || "N/A"} Taka
+                  </span>
+                  <span className="text-sm text-gray-500">
+                <strong>Stock:</strong> {product?.main_quantity || 20}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowModal(true)}
+                className="mt-6 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg shadow hover:from-purple-600 hover:to-blue-600 transition font-semibold text-lg"
+              >
+                Buy Now
+              </button>
             </div>
-          </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="mt-6 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg shadow hover:from-purple-600 hover:to-blue-600 transition font-semibold text-lg"
-          >
-            Buy Now
-          </button>
-        </div>
-      </div>
+              </div>
 
-      {/* Modal */}
+              {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-2xl min-w-[340px] max-w-sm w-full relative shadow-2xl border border-purple-100">

@@ -7,7 +7,7 @@ const Catagories = () => {
     const params = useParams();
 
     useEffect(() => {
-        fetch('http://localhost:3000/products')
+        fetch('https://pick-ns-hiip-serversite.vercel.app/products')
             .then(response => response.json())
             .then(data => setProducts(data))
             .catch(error => console.error('Error fetching products:', error));
