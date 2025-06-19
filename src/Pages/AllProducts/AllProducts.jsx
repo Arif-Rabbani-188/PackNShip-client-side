@@ -30,7 +30,7 @@ const AllProducts = () => {
     );
 
     return (
-        <div className="mt-18 all-products-page py-10 px-20 mx-auto bg-gradient-to-br from-blue-50 to-white min-h-screen">
+        <div className="mt-18 all-products-page py-10 px-4 sm:px-20 mx-auto bg-gradient-to-br from-blue-50 to-white min-h-screen">
             <h1 className="text-4xl font-extrabold mb-8 text-blue-700 tracking-tight text-center drop-shadow-lg">
                 Explore Our Products
             </h1>
@@ -94,7 +94,7 @@ const AllProducts = () => {
             ) : (
                 <div className="overflow-x-auto">
                     <table className="min-w-full text-black bg-white rounded-lg shadow">
-                        <thead>
+                        <thead className="hidden sm:table-header-group">
                             <tr>
                                 <th className="px-4 py-2 border-b text-left">Image</th>
                                 <th className="px-4 py-2 border-b text-left">Name</th>
@@ -105,9 +105,21 @@ const AllProducts = () => {
                         </thead>
                         <tbody>
                             {filteredProducts.length > 0 ? (
-                                filteredProducts.map((product) => (
-                                    <tr key={product._id} className="hover:bg-blue-50">
-                                        <td className="px-4 py-2 border-b">
+                                filteredProducts.map((product, idx) => (
+                                    <tr
+                                        key={product._id}
+                                        className={`block sm:table-row border-b sm:border-0 hover:bg-blue-50 ${
+                                            idx !== filteredProducts.length - 1 ? "mb-6" : ""
+                                        }`}
+                                        style={{
+                                            marginBottom: '1.5rem',
+                                            borderRadius: '0.75rem',
+                                            boxShadow: '0 2px 8px 0 rgba(59,130,246,0.05)',
+                                            background: '#fff',
+                                            ...(window.innerWidth < 640 ? { display: 'block' } : {})
+                                        }}
+                                    >
+                                        <td className="px-4 py-2 border-b flex items-center sm:table-cell before:content-['Image'] before:block before:font-semibold before:w-24 sm:before:hidden">
                                             {product.image && (
                                                 <img
                                                     src={product.image}
@@ -116,10 +128,16 @@ const AllProducts = () => {
                                                 />
                                             )}
                                         </td>
-                                        <td className="px-4 py-2 border-b">{product.name}</td>
-                                        <td className="px-4 py-2 border-b">{product.short_description}</td>
-                                        <td className="px-4 py-2 border-b">{product.price} Taka</td>
-                                        <td className="px-4 py-2 border-b">
+                                        <td className="px-4 py-2 border-b flex items-center sm:table-cell before:content-['Name'] before:block before:font-semibold before:w-24 sm:before:hidden">
+                                            {product.name}
+                                        </td>
+                                        <td className="px-4 py-2 border-b flex items-center sm:table-cell before:content-['Description'] before:block before:font-semibold before:w-24 sm:before:hidden">
+                                            {product.short_description}
+                                        </td>
+                                        <td className="px-4 py-2 border-b flex items-center sm:table-cell before:content-['Price'] before:block before:font-semibold before:w-24 sm:before:hidden">
+                                            {product.price} Taka
+                                        </td>
+                                        <td className="px-4 py-2 border-b flex items-center sm:table-cell before:content-['Action'] before:block before:font-semibold before:w-24 sm:before:hidden">
                                             <Link
                                                 to={`/allProducts/${product._id}`}
                                                 className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
