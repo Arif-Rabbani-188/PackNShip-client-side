@@ -16,7 +16,7 @@ const Detail = () => {
       .get(`https://pick-ns-hiip-serversite.vercel.app/products/${id}`)
       .then((response) => {
         setProduct(response.data);
-        setQuantity(response.data.minimum_selling_quantity || 1);
+        setQuantity(parseInt(response.data.minimum_selling_quantity) || 1);
       })
       .catch((error) => {
         console.error("Error fetching product details:", error);
