@@ -10,6 +10,11 @@ import Error from './Components/Error/Error.jsx'
 import Login from './Pages/Login/Login.jsx'
 import Register from './Pages/Register/Register.jsx'
 import Profile from './Pages/Profile/Profile.jsx'
+import AddProduct from './Pages/AddProduct/AddProduct.jsx'
+import AllProducts from './Pages/AllProducts/AllProducts.jsx'
+import Catagories from './Pages/Catagories/Catagories.jsx'
+import Catagory from './Pages/Catagories/Catagory.jsx'
+import MyProducts from './Pages/MyProducts/MyProducts.jsx'
 
 const router = createBrowserRouter([
   {
@@ -29,7 +34,26 @@ const router = createBrowserRouter([
         path: "profile",
         element: <Profile></Profile>
       }
-      ,
+      ,{
+          path: "addProduct",
+          element: <AddProduct></AddProduct>
+      },
+      {
+        path: "allProducts",
+        element: <AllProducts></AllProducts>
+      },
+      {
+        path: "catagories",
+        element: <Catagories></Catagories>
+      },
+      {
+        path: "catagories/:catagory",
+        element: <Catagory />,
+      },
+      {
+        path: "myProducts",
+        element: <MyProducts></MyProducts>
+      },
       {
         path: '*',
         element: <Error></Error>
