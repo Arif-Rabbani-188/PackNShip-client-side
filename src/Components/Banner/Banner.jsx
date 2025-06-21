@@ -1,9 +1,11 @@
-import React from "react";
+import React, { use } from "react";
 import { FaArrowRight } from "react-icons/fa";
+import { useNavigate } from "react-router";
 
 const Banner = () => {
+    const navidate = useNavigate();
 return (
-    <section className="pt-16 md:pt-20 relative w-full h-[800px] flex items-center justify-center bg-gray-900 overflow-hidden">
+    <section className="pt-16 md:pt-20 relative w-full min-h-screen flex items-center justify-center bg-gray-900 overflow-hidden">
         <img
             src="https://i.ibb.co/7d92C2FT/Gemini-Generated-Image-7ayl847ayl847ayl.png"
             alt="Banner Background"
@@ -18,7 +20,9 @@ return (
                 <p className="text-lg md:text-2xl mb-8 drop-shadow-md">
                     PackNShip is your trusted partner for seamless B2B logistics. We help businesses optimize supply chains, reduce operational costs, and build stronger connections with suppliers and distributors worldwide.
                 </p>
-                <button className="bg-gradient-to-r from-blue-600 to-purple-400 flex items-center gap-2 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg text-lg">
+                <button
+                onClick={() => navidate("/allProducts")}
+                 className="bg-gradient-to-r from-blue-600 to-purple-400 flex items-center gap-2 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg text-lg">
                     Get started <span>
                         <FaArrowRight size={20} />
                     </span>

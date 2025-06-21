@@ -52,7 +52,7 @@ const Products = () => {
       }
 
   return (
-    <section className="bg-gradient-to-r from-blue-200 via-purple-200 to-pink-200 py-16 ">
+    <section className=" min-h-screen flex items-center bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 py-16 ">
       <div className="max-w-6xl mx-auto px-4">
         <h2 className="text-center mb-12 text-5xl font-extrabold text-black drop-shadow-2xl tracking-tight">
           Product Categories

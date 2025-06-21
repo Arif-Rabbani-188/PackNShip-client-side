@@ -2,8 +2,8 @@ import React from 'react';
 
 const FAQ = () => {
     return (
-        <div className="bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 py-12 px-2">
-            <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg p-8">
+        <div className="min-h-screen bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 flex items-center py-12 px-2">
+            <div className="w-3xl md:w-7xl mx-auto bg-white rounded-2xl shadow-lg p-8">
                 <h2 className="text-center mb-10 text-3xl font-bold text-[#2d3a4b] tracking-wide">
                     Frequently Asked Questions
                 </h2>

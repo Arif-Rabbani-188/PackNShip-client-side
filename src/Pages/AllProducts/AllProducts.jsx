@@ -127,6 +127,15 @@ const AllProducts = () => {
                   <p className="text-gray-500 mb-4 flex-1">
                     {product.short_description}
                   </p>
+                  <p className="text-pink-400 mb-4 flex-1">
+                    Brand: {product.brand_name }
+                  </p>
+                  <p className="text-black mb-4 flex-1">
+                    In Stock: <span className="font-bold text-green-600">{product.main_quantity}</span> units
+                  </p>
+                  <p className="text-black mb-4 flex-1">
+                    Minimum Selling: <span className="text-red-400 font-bold">{product.minimum_selling_quantity} </span> units
+                  </p>
                   <div className="flex items-center justify-between mt-auto">
                     <span className="text-xl font-bold text-blue-600">
                       {product.price} Taka

@@ -35,7 +35,7 @@ const offersData = [
 
 const Offers = () => {
 return (
-    <section className="py-12 bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100">
+    <section className="py-12 min-h-screen flex items-center bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100">
         <div className="w-10/12 mx-auto text-center">
             <h2 className="text-4xl font-bold mb-4 text-gray-800">Our Exclusive Offers & Services</h2>
             <p className="text-gray-500 mb-10">
