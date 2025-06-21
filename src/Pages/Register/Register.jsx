@@ -14,6 +14,16 @@ const Register = () => {
     const photoURL = formData.get("photoURL");
     const email = formData.get("email");
     const password = formData.get("password");
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/;
+    if (!passwordRegex.test(password)) {
+      Swal.fire({
+      icon: "error",
+      title: "Invalid Password",
+      text: "Password must be at least 6 characters long and include both uppercase and lowercase letters.",
+      });
+      return;
+    }
     const confirmPassword = formData.get("confirmPassword");
 
     if (password !== confirmPassword) {
