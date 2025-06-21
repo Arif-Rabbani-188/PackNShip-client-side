@@ -6,7 +6,7 @@ import "./Navbar.css";
 import { Authconext } from "../../Context/AuthContext/AuthContext";
 
 const Navbar = () => {
-  const { logOut, user } = use(Authconext);
+  const { logOut, user , cartDatas} = use(Authconext);
   // Reference for the drawer checkbox
   const drawerRef = React.useRef(null);
   console.log(user);
@@ -177,7 +177,7 @@ const Navbar = () => {
         <div className="flex gap-5">
           <div className="flex items-center gap-5">
             <div className="indicator">
-              <span className="indicator-item badge badge-secondary">{product.length}</span>
+              <span className="indicator-item badge badge-secondary">{user ? cartDatas?.length : "0"}</span>
               <Link to="cart">
               <FaShoppingCart color="black" size={30} />
             </Link>

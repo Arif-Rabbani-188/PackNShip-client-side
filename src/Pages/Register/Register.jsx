@@ -4,8 +4,7 @@ import Swal from "sweetalert2";
 import { Authconext } from "../../Context/AuthContext/AuthContext";
 
 const Register = () => {
-
-    const {  createUserWithEmail } = use(Authconext);
+  const { createUserWithEmail } = use(Authconext);
   const [form, setForm] = useState(null);
 
   const handleSubmit = (e) => {
@@ -18,16 +17,20 @@ const Register = () => {
     const confirmPassword = formData.get("confirmPassword");
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      Swal.fire({
+        icon: "error",
+        title: "Password Mismatch",
+        text: "Passwords do not match!",
+      });
       return;
     }
     if (!name || !email || !password) {
-        Swal.fire({
-        icon: 'warning',
-        title: 'Missing Fields',
-        text: 'Please fill in all fields!',
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Fields",
+        text: "Please fill in all fields!",
       });
-        return;
+      return;
     }
     const newForm = { name, photoURL, email, password, confirmPassword };
     setForm(newForm);

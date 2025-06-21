@@ -8,6 +8,18 @@ const Login = () => {
   const from = location.state || "/";
 
   const { signInWithGoogle, signInWithEmail} = use(Authconext);
+
+  const handleGoogleSignIn = () => {
+    signInWithGoogle()
+      .then(result => {
+        console.log("Google login successful:", result);
+        navigate(from);
+      })
+      .catch(error => {
+        console.error("Google login failed:", error);
+        alert("Google login failed. Please try again.");
+      });
+  }
   const handleSubmit = (e) => {
     e.preventDefault();
     const email = e.target.email.value;
@@ -84,7 +96,7 @@ const Login = () => {
           <button
             type="button"
             className="flex items-center justify-center gap-2 sm:gap-3 py-2 sm:py-3 bg-white border border-gray-300 rounded-lg font-semibold text-base text-gray-700 hover:bg-gray-50 shadow transition"
-            onClick={()=> signInWithGoogle(from)}
+            onClick={()=>handleGoogleSignIn()}
           >
             <svg className="w-5 h-5" viewBox="0 0 48 48">
               <g>

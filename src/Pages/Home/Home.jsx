@@ -4,6 +4,7 @@ import Banner from '../../Components/Banner/Banner';
 import Products from '../../Components/Produucts/Products';
 import FAQ from '../FAQ/FAQ';
 import Offers from '../Offers/Offers';
+import Card from '../../Components/Card/Card';
 
 const Home = () => {
     return (

@@ -40,7 +40,9 @@ const router = createBrowserRouter([
       },
       {
         path: 'cart',
-        element:<Cart></Cart>
+        element: <PrivateRoute>
+          <Cart></Cart>
+        </PrivateRoute>
       }
       ,{
           path: "addProduct",
@@ -70,7 +72,9 @@ const router = createBrowserRouter([
       },
       {
         path: "catagories/:catagory",
-        element: <Catagory />,
+        element: <PrivateRoute>
+          <Catagory />
+        </PrivateRoute>,
       },
       {
         path: "myProducts",

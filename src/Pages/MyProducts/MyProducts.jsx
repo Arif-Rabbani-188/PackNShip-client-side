@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { Authconext } from "../../Context/AuthContext/AuthContext";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import axios from "axios";
 
 const MyProducts = () => {
@@ -8,18 +8,36 @@ const MyProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
- useEffect(() => {
-    axios.get(`https://pick-ns-hiip-serversite.vercel.app/myProducts?email=${user?.email}`)
-        .then((response) => {
-            const fetchedProducts = response.data;
-            setProducts(fetchedProducts);
-            setLoading(false);
-        })
-        .catch((error) => {
-            console.error("Error fetching products:", error);
-            setLoading(false);
-        });
+  useEffect(() => {
+    axios
+      .get(
+        `https://pick-ns-hiip-serversite.vercel.app/myProducts?email=${user?.email}`
+      )
+      .then((response) => {
+        const fetchedProducts = response.data;
+        setProducts(fetchedProducts);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+        setLoading(false);
+      });
   }, [user?.email]);
+
+  const handleDelete = async (id) => {
+    console.log("Deleting product with ID:", id);
+
+    axios.delete(`https://pick-ns-hiip-serversite.vercel.app/products/${id}`)
+      .then((response) => {
+        console.log("Product deleted successfully:", response.data);
+        setProducts((prevProducts) =>
+          prevProducts.filter((product) => product._id !== id)
+        );
+      })
+      .catch((error) => {
+        console.error("Error deleting product:", error);
+      });
+  }
 
   if (loading)
     return (
@@ -115,11 +133,17 @@ const MyProducts = () => {
                       Edit
                     </button>
                     <Link
-                    to={`/allProducts/${product._id}`}
+                      to={`/allProducts/${product._id}`}
                       className="bg-white border border-blue-400 hover:bg-blue-50 text-blue-700 px-6 py-2 rounded-lg text-base font-semibold shadow transition"
                     >
                       Details
                     </Link>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg text-base font-semibold shadow transition"
+                      onClick={() => handleDelete(product._id)}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>

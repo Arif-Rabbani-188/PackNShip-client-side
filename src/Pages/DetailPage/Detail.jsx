@@ -1,15 +1,17 @@
 import { useEffect, useState, useContext } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Authconext } from "../../Context/AuthContext/AuthContext";
 import axios from "axios";
 import Swal from "sweetalert2";
 
 const Detail = () => {
-  const { user } = useContext(Authconext);
+  const { user, cartDatas, setCartDatas } = useContext(Authconext);
   const [product, setProduct] = useState(null);
   const { id } = useParams();
   const [showModal, setShowModal] = useState(false);
   const [quantity, setQuantity] = useState(1);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
@@ -27,26 +29,62 @@ const Detail = () => {
     e.preventDefault();
     if (!product) {
       Swal.fire({
-        title: "Error",
-        text: "Product information is not available.",
-        icon: "error",
-        draggable: false,
+      title: "Error",
+      text: "Product information is not available.",
+      icon: "error",
+      draggable: false,
       });
       return;
     }
-    const products = JSON.parse(localStorage.getItem("product")) || [];
-    const updatedProducts = [
-      ...products,
-      { ...product, quantity: quantity }
-    ];
-    localStorage.setItem("product", JSON.stringify(updatedProducts));
+
+    // Check if product already exists in cart
+    const existingIndex = cartDatas.findIndex(item => item._id === product._id);
+    let updatedProduct;
+    if (existingIndex !== -1) {
+      // Update quantity if exists
+      updatedProduct = cartDatas.map((item, idx) =>
+      idx === existingIndex
+        ? { ...item, quantity: item.quantity + quantity, buying_date: new Date() }
+        : item
+      );
+    } else {
+      // Add new product
+      updatedProduct = [...cartDatas, { ...product, quantity: quantity, buying_date: new Date() }];
+    }
+    setCartDatas(updatedProduct);
+
+    axios.patch(
+      `https://pick-ns-hiip-serversite.vercel.app/users/${user._id}`,
+      { cart: updatedProduct }
+    )
+
+    axios.patch(
+      `https://pick-ns-hiip-serversite.vercel.app/products/${id}`,
+      {
+        ...product,
+        main_quantity: product.main_quantity - quantity,
+      }
+    )
+    .then((response) => {
+      console.log("Cart updated successfully:", response.data);
+    })
+    .catch((error) => {
+      console.error("Error updating cart:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Failed to update cart. Please try again.",
+        icon: "error",
+        draggable: false,
+      });
+    });
+
     Swal.fire({
       title: "Purchase Confirmed",
       icon: "success",
       draggable: false,
     }).then(() => {
       setShowModal(false);
-      window.location.href = "/allProducts";
+      navigate("/cart");
     });
   };
 
@@ -57,7 +95,7 @@ const Detail = () => {
   };
 
   return (
-    <div className="py-20 bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen justify-center items-center">
+    <div className="py-24 bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen justify-center items-center">
       <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden items-center flex flex-col md:flex-row">
         {/* Product Image */}
         <div className="md:w-1/2 flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100 p-12">
@@ -74,8 +112,8 @@ const Detail = () => {
           )}
         </div>
         {/* Product Details */}
-            <div className="md:w-1/2 p-8 flex flex-col justify-between">
-              <div>
+              <div className="md:w-1/2 p-8 flex flex-col justify-between">
+                <div>
                 <h2 className="text-xl font-bold text-gray-800 mb-2">
                   Category: {product?.category || "Product Name"}
                 </h2>
@@ -94,23 +132,23 @@ const Detail = () => {
                   {product?.rating ? (
                 <span className="flex items-center">
                   {[1,2,3,4,5].map((star) => (
-                    <svg
-                      key={star}
-                      className={`w-5 h-5 ${
-                    product.rating >= star
-                      ? "text-yellow-400"
-                      : product.rating >= star - 0.5
-                      ? "text-yellow-300"
-                      : "text-gray-300"
-                      }`}
-                      fill={product.rating >= star ? "currentColor" : "none"}
-                      stroke="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <polygon
-                    points="10 15 4 18 5.5 11.5 1 7.5 7 7 10 1 13 7 19 7.5 14.5 11.5 16 18"
-                      />
-                    </svg>
+                  <svg
+                    key={star}
+                    className={`w-5 h-5 ${
+                  product.rating >= star
+                    ? "text-yellow-400"
+                    : product.rating >= star - 0.5
+                    ? "text-yellow-300"
+                    : "text-gray-300"
+                    }`}
+                    fill={product.rating >= star ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <polygon
+                  points="10 15 4 18 5.5 11.5 1 7.5 7 7 10 1 13 7 19 7.5 14.5 11.5 16 18"
+                    />
+                  </svg>
                   ))}
                   <span className="ml-2 text-sm text-gray-700 font-medium">{parseInt(product.rating).toFixed(1)}</span>
                 </span>
@@ -123,20 +161,21 @@ const Detail = () => {
                 {product?.price || "N/A"} Taka
                   </span>
                   <span className="text-sm text-gray-500">
-                <strong>Stock:</strong> {product?.main_quantity || 20}
+                <strong></strong>Stock: {product?.main_quantity || "Stock Out"}
                   </span>
                 </div>
-              </div>
-              <button
+                </div>
+                <button
                 onClick={() => setShowModal(true)}
-                className="mt-6 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg shadow hover:from-purple-600 hover:to-blue-600 transition font-semibold text-lg"
-              >
+                className="mt-6 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg shadow hover:from-purple-600 hover:to-blue-600 transition font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!product?.main_quantity || product.main_quantity === 0 || product.email === user.email}
+                >
                 Buy Now
-              </button>
-            </div>
+                </button>
               </div>
+                </div>
 
-              {/* Modal */}
+                {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-2xl min-w-[340px] max-w-sm w-full relative shadow-2xl border border-purple-100">
@@ -191,7 +230,7 @@ const Detail = () => {
                 <span className="mx-2 text-lg font-semibold">{quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity((q) => q + 1)}
+                  onClick={() => setQuantity((q) => Math.min(product.main_quantity, q + 1))}
                   className="px-3 py-1 text-black bg-gray-200 rounded hover:bg-purple-200 text-lg font-bold"
                 >
                   +
