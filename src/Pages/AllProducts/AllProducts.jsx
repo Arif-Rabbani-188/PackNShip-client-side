@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
 
+const FILTER_OPTIONS = [
+  { value: "", label: "All" },
+  { value: "main_quantity", label: "Main Quantity (High to Low)" },
+  { value: "main_quantity_asc", label: "Main Quantity (Low to High)" },
+  { value: "minimum_quantity", label: "Minimum Quantity (High to Low)" },
+  { value: "minimum_quantity_asc", label: "Minimum Quantity (Low to High)" },
+];
+
 const AllProducts = () => {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("card"); // "card" or "table"
+  const [viewMode, setViewMode] = useState("card");
+  const [filter, setFilter] = useState("");
+  const [showAvailable, setShowAvailable] = useState(false);
 
   useEffect(() => {
     fetch("https://pick-ns-hiip-serversite.vercel.app/products")
@@ -25,9 +35,34 @@ const AllProducts = () => {
       });
   }, []);
 
-  const filteredProducts = products.filter((product) =>
+  // Filter and sort logic
+  let filteredProducts = products.filter((product) =>
     product.name?.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (showAvailable) {
+    filteredProducts = filteredProducts.filter(
+      (product) => (product.minimum_selling_quantity || 0) > 100
+    );
+  }
+
+  if (filter === "main_quantity") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => (b.main_quantity || 0) - (a.main_quantity || 0)
+    );
+  } else if (filter === "main_quantity_asc") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => (a.main_quantity || 0) - (b.main_quantity || 0)
+    );
+  } else if (filter === "minimum_quantity") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => (b.minimum_quantity || 0) - (a.minimum_quantity || 0)
+    );
+  } else if (filter === "minimum_quantity_asc") {
+    filteredProducts = [...filteredProducts].sort(
+      (a, b) => (a.minimum_quantity || 0) - (b.minimum_quantity || 0)
+    );
+  }
 
   return (
     <div className="mt-18 all-products-page py-10 px-4 sm:px-20 mx-auto bg-gradient-to-br from-blue-50 to-white min-h-screen">
@@ -42,11 +77,32 @@ const AllProducts = () => {
           onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:w-80 px-5 py-3 border border-blue-200 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-400 text-black bg-white transition"
         />
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="px-5 py-3 border border-blue-200 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-blue-400 text-black bg-white transition"
+        >
+          {FILTER_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
         <button
           onClick={() => setViewMode(viewMode === "card" ? "table" : "card")}
           className="px-5 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
         >
           {viewMode === "card" ? "Table View" : "Card View"}
+        </button>
+        <button
+          onClick={() => setShowAvailable((prev) => !prev)}
+          className={`px-5 py-3 rounded-lg font-semibold shadow transition ${
+            showAvailable
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-gray-200 text-blue-700 hover:bg-blue-100"
+          }`}
+        >
+          {showAvailable ? "Show All Products" : "Show Available Products"}
         </button>
       </div>
       {viewMode === "card" ? (
