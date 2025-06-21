@@ -15,6 +15,7 @@ import { useNavigate } from "react-router";
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [tokenUser, setTokenUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const GoogleProvider = new GoogleAuthProvider();
   const [cartDatas, setCartDatas] = useState(null);
@@ -76,6 +77,7 @@ const AuthProvider = ({ children }) => {
       photoURL: photoURL,
     });
     setUser(result.user);
+    setTokenUser(result.user);
     axios
       .post("https://pick-ns-hiip-serversite.vercel.app/users", {
         email: result.user?.email,
@@ -124,6 +126,7 @@ const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(false);
       setUser(user);
+      setTokenUser(user);
     });
     return () => unsubscribe();
   }, []);
@@ -136,6 +139,23 @@ const AuthProvider = ({ children }) => {
         if (currentUser) {
           setUser(currentUser);
 
+          if(currentUser.email){
+            axios.post("https://pick-ns-hiip-serversite.vercel.app/jwt", {
+              email: currentUser.email,
+            },
+            {
+              withCredentials: true,
+            }
+          )
+            .then((res) => {
+              // localStorage.setItem("access-token", res.data.token);
+
+            })
+            .catch((error) => {
+              console.error("Error generating JWT:", error);
+            });
+          }
+
           setCartDatas(currentUser.cart || []);
 
         } else {
@@ -146,6 +166,8 @@ const AuthProvider = ({ children }) => {
         console.error("Error fetching users:", error);
       });
   }, [user, setUser]);
+
+  console.log(tokenUser);
 
   const userInfo = {
     signInWithGoogle,
@@ -165,6 +187,7 @@ const AuthProvider = ({ children }) => {
     loading,
     cartDatas,
     setCartDatas,
+    tokenUser,
   };
 
   return <Authconext value={userInfo}>{children}</Authconext>;
