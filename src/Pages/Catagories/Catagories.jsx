@@ -9,15 +9,20 @@ import {
     FaBoxOpen,
 } from "react-icons/fa";
 import { Link, useParams } from "react-router-dom";
+import FullScreenLoader from "../../Components/Loader/FullScreenLoader";
 import Card from "../../Components/Card/Card";
 
 const Catagories = () => {
     const [productsWithCategory, setProductsWithCategory] = useState([]);
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
         axios
             .get("https://pick-ns-hiip-serversite.vercel.app/products")
             .then((response) => {
-                const products = response.data;
+                if (cancelled) return;
+                const products = Array.isArray(response.data) ? response.data : [];
                 const productsWithCategory = products.map((product) => ({
                     ...product,
                     category: product.category || "Uncategorized",
@@ -25,8 +30,10 @@ const Catagories = () => {
                 setProductsWithCategory(productsWithCategory.reverse());
             })
             .catch((error) => {
-                console.error("Error fetching products:", error);
-            });
+                if (!cancelled) console.error("Error fetching products:", error);
+            })
+            .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
     }, []);
 
     const categories = [
@@ -40,6 +47,10 @@ const Catagories = () => {
         selectedCategory === "All"
             ? productsWithCategory
             : productsWithCategory.filter((p) => p.category === selectedCategory);
+
+    if (loading) {
+        return <FullScreenLoader />;
+    }
 
     return (
         <section className="py-24 bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100">

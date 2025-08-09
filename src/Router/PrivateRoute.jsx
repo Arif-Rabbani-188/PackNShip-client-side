@@ -1,12 +1,12 @@
-import React, { use } from 'react';
+import React, { useContext } from 'react';
 import { Authconext } from '../Context/AuthContext/AuthContext';
-import { Navigate, useLocation } from 'react-router';
+import { Navigate, useLocation } from 'react-router-dom';
 
 const PrivateRoute = ({children}) => {
 
     const location = useLocation();
 
-    const {user, loading} = use(Authconext);
+    const {user, loading} = useContext(Authconext);
 
     if (loading) {
         return <div className="flex justify-center items-center h-screen">

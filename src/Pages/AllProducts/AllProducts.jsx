@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router";
+import FullScreenLoader from "../../Components/Loader/FullScreenLoader";
 
 const FILTER_OPTIONS = [
   { value: "", label: "All" },
@@ -11,15 +12,19 @@ const FILTER_OPTIONS = [
 
 const AllProducts = () => {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState("card");
   const [filter, setFilter] = useState("");
   const [showAvailable, setShowAvailable] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
     fetch("https://pick-ns-hiip-serversite.vercel.app/products")
       .then((response) => response.json())
       .then((data) => {
+        if (cancelled) return;
         if (Array.isArray(data)) {
           setProducts(data);
         } else if (Array.isArray(data.products)) {
@@ -30,9 +35,13 @@ const AllProducts = () => {
         }
       })
       .catch((error) => {
-        setProducts([]);
-        console.error("Error fetching products:", error);
-      });
+        if (!cancelled) {
+          setProducts([]);
+          console.error("Error fetching products:", error);
+        }
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   // Filter and sort logic
@@ -62,6 +71,10 @@ const AllProducts = () => {
     filteredProducts = [...filteredProducts].sort(
       (a, b) => (a.minimum_quantity || 0) - (b.minimum_quantity || 0)
     );
+  }
+
+  if (loading) {
+    return <FullScreenLoader />;
   }
 
   return (

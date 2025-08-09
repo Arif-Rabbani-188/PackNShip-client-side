@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import { Authconext } from "../../Context/AuthContext/AuthContext";
 
 const Cart = () => {
-  const { user, setUser, cartDatas, setCartDatas } = useContext(Authconext);
+  const { user, setUser, cartDatas, setCartDatas, refreshUser } = useContext(Authconext);
   const cartData = cartDatas || [];
 
   const [localCart, setLocalCart] = useState(cartData);
@@ -15,35 +15,52 @@ const Cart = () => {
     setLocalCart(cartData);
   }, [cartDatas]);
 
+  // On mount (and when user changes) ensure we have latest server cart
+  useEffect(() => {
+    if (user?.email) {
+      refreshUser(user.email);
+    }
+  }, [user?.email]);
+
   const handleRemove = (indexToRemove) => {
-    const updatedCart = localCart.filter((_, idx) => idx !== indexToRemove);
-    setLocalCart(updatedCart);
     Swal.fire({
       title: `Are you sure you want to remove this item?`,
       showCancelButton: true,
       confirmButtonText: "Remove",
+      icon: "warning",
     }).then((result) => {
-      if (result.isConfirmed) {
-        axios
-          .patch(
-            `https://pick-ns-hiip-serversite.vercel.app/users/${user._id}`,
-            {
-              cart: updatedCart,
-            }
-          )
-          .then(() => {
-            window.location.reload();
-          })
-          .catch((error) => {
-            console.error("Error updating cart:", error);
-            Swal.fire({
-              title: "Error",
-              text: "Failed to update cart. Please try again.",
-              icon: "error",
-              draggable: false,
-            });
+      if (!result.isConfirmed) return;
+      const updatedCart = (cartDatas || []).filter((_, idx) => idx !== indexToRemove);
+      // Optimistically update UI
+      setLocalCart(updatedCart);
+      setCartDatas(updatedCart);
+      setUser((prev) => ({ ...prev, cart: updatedCart }));
+      axios
+        .patch(
+          `https://pick-ns-hiip-serversite.vercel.app/users/${user._id}`,
+          { cart: updatedCart }
+        )
+        .then(() => {
+          Swal.fire({
+            title: "Removed",
+            icon: "success",
+            timer: 1200,
+            showConfirmButton: false,
           });
-      }
+          refreshUser(user.email);
+        })
+        .catch((error) => {
+          console.error("Error updating cart:", error);
+          Swal.fire({
+            title: "Error",
+            text: "Failed to update cart. Restoring previous state.",
+            icon: "error",
+            draggable: false,
+          });
+          // Rollback
+          setLocalCart(cartDatas || []);
+          setCartDatas(cartDatas || []);
+        });
     });
   };
 
@@ -60,11 +77,13 @@ const Cart = () => {
         cart: updatedCart,
       })
       .then(() => {
-        setUser((prev) => ({
-          ...prev,
-          cart: updatedCart,
-        }));
+        setUser((prev) => ({ ...prev, cart: updatedCart }));
         setCartDatas(updatedCart);
+        refreshUser(user.email);
+      })
+      .catch(() => {
+        // revert edit if server fails
+        setLocalCart(cartData);
       });
     setEditIndex(null);
     setEditQuantity(1);
@@ -95,11 +114,10 @@ const Cart = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`https://pick-ns-hiip-serversite.vercel.app/users/${user._id}`, {
-            cart: [],
-          })
+          .patch(`https://pick-ns-hiip-serversite.vercel.app/users/${user._id}`, { cart: [] })
           .then(() => {
             setCartDatas([]);
+            refreshUser(user.email);
             Swal.fire({
               title: "Checkout Successful",
               text: "Thank you for your purchase!",
@@ -119,6 +137,8 @@ const Cart = () => {
       }
     });
   }
+
+  console.log(user);
 
   return (
     <div className="min-h-screen w-full py-20 sm:py-24 bg-gradient-to-br from-blue-50 to-purple-100 px-0 sm:px-0">

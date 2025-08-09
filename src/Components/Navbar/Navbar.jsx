@@ -1,67 +1,75 @@
-import React, { use } from "react";
+import React, { useContext, useRef, useCallback } from "react";
 import { FaRegUserCircle, FaShoppingCart } from "react-icons/fa";
 import { IoMenu } from "react-icons/io5";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink } from "react-router-dom";
 import "./Navbar.css";
 import { Authconext } from "../../Context/AuthContext/AuthContext";
 
+// Utility: central place for primary navigation links.
+const NAV_LINKS = [
+  { to: "/", label: "Home" },
+  { to: "/catagories", label: "Categories" }, // keeping original route spelling
+  { to: "/allProducts", label: "All Products" },
+  { to: "/addProduct", label: "Add Product" },
+  { to: "/myProducts", label: "My Products" },
+];
+
 const Navbar = () => {
-  const { logOut, user , cartDatas} = use(Authconext);
-  // Reference for the drawer checkbox
-  const drawerRef = React.useRef(null);
-  console.log(user);
+  const { logOut, user, cartDatas } = useContext(Authconext);
+  const drawerRef = useRef(null);
 
-  // Function to close the drawer
-  const closeDrawer = () => {
-    if (drawerRef.current) {
-      drawerRef.current.checked = false;
-    }
-  };
+  const closeDrawer = useCallback(() => {
+    if (drawerRef.current) drawerRef.current.checked = false;
+  }, []);
 
-  const product = JSON.parse(localStorage.getItem("product")) || [];
+  const handleLogout = useCallback(() => {
+    closeDrawer();
+    logOut();
+  }, [closeDrawer, logOut]);
+
+  const cartCount = user ? cartDatas?.length || 0 : 0;
+
+  const avatar = user?.photoURL ? (
+    <img
+      className="w-[50px] h-[50px] object-cover rounded-full"
+      src={user.photoURL}
+      alt={user?.displayName || "User avatar"}
+      referrerPolicy="no-referrer"
+    />
+  ) : (
+    <FaRegUserCircle size={50} />
+  );
 
   return (
-    <div className="bg-gradient-to-r from-black/10 to-gray-300 shadow-md z-50 fixed top-0 left-0 w-full backdrop-blur-md">
+    <header className="bg-gradient-to-r from-black/10 to-gray-300 shadow-md z-50 fixed top-0 left-0 w-full backdrop-blur-md">
       <div className="flex justify-between items-center p-4 text-white md:w-11/12 mx-auto">
+        {/* Mobile Drawer */}
         <div className="flex gap-5 items-center">
-          <div className="flex md:hidden">
+          <div className="flex md:hidden" aria-label="Mobile navigation menu">
             <div className="drawer">
-              <input
-                id="my-drawer"
-                type="checkbox"
-                className="drawer-toggle"
-                ref={drawerRef}
-              />
+              <input id="navbar-drawer" type="checkbox" className="drawer-toggle" ref={drawerRef} />
               <div className="drawer-content">
-                <label htmlFor="my-drawer" className="drawer-button">
+                <label
+                  htmlFor="navbar-drawer"
+                  className="drawer-button inline-flex items-center justify-center p-2 rounded-lg hover:bg-white/10 focus:outline-none focus-visible:ring"
+                  aria-label="Open menu"
+                >
                   <IoMenu size={30} />
                 </label>
               </div>
               <div className="drawer-side">
-                <label
-                  htmlFor="my-drawer"
-                  aria-label="close sidebar"
-                  className="drawer-overlay"
-                ></label>
+                <label htmlFor="navbar-drawer" aria-label="Close menu" className="drawer-overlay"></label>
                 <ul className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-                  <li>
-                    <div className="flex flex-col items-center py-4 border-b mb-4">
-                      {user ? (
-                        <img
-                          src={user?.photoURL}
-                          alt="Profile"
-                          className="w-16 h-16 rounded-full mb-2"
-                        />
-                      ) : (
-                        <FaRegUserCircle size={64} />
+                  <li className="mb-2">
+                    <div className="flex flex-col items-center py-4 border-b mb-4 w-full">
+                      {avatar}
+                      <span className="font-semibold text-center text-lg mt-2">
+                        {user?.displayName || "Guest"}
+                      </span>
+                      {user?.email && (
+                        <span className="text-sm text-gray-500 break-all">{user.email}</span>
                       )}
-                      <span className="font-semibold text-center text-lg">
-                        {user?.displayName || "No User"}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {user?.email}
-                      </span>
-                      {user ? (
+                      {user && (
                         <Link
                           className="btn btn-primary btn-sm mt-3 w-full"
                           to="/profile"
@@ -69,65 +77,29 @@ const Navbar = () => {
                         >
                           View Profile
                         </Link>
-                      ) : (
-                        ""
                       )}
                     </div>
                   </li>
-                  <li>
-                    <NavLink to="/" onClick={closeDrawer}>
-                      Home
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink to="/catagories" onClick={closeDrawer}>
-                      Catagories
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink to="/allProducts" onClick={closeDrawer}>
-                      All Products
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink to="/addProduct" onClick={closeDrawer}>
-                      Add Product
-                    </NavLink>
-                  </li>
-                  <li>
-                    <NavLink to="/myProducts" onClick={closeDrawer}>
-                      My Products
-                    </NavLink>
-                  </li>
-                  <li>
-                    {user ? (
-                      <NavLink
-                        className={"btn btn-primary btn-sm w-full"}
-                        onClick={() => {
-                          closeDrawer();
-                          logOut();
-                        }}
-                      >
-                        LogOut
+                  {NAV_LINKS.map(l => (
+                    <li key={l.to}>
+                      <NavLink to={l.to} onClick={closeDrawer}>
+                        {l.label}
                       </NavLink>
+                    </li>
+                  ))}
+                  <li className="mt-2">
+                    {user ? (
+                      <button
+                        onClick={handleLogout}
+                        className="btn btn-primary btn-sm w-full"
+                        type="button"
+                      >
+                        Logout
+                      </button>
                     ) : (
                       <div className="flex flex-col items-start gap-2">
-                        <NavLink
-                          to="/login"
-                          onClick={() => {
-                            closeDrawer();
-                          }}
-                        >
-                          Login
-                        </NavLink>
-                        <NavLink
-                          to="/register"
-                          onClick={() => {
-                            closeDrawer();
-                          }}
-                        >
-                          Register
-                        </NavLink>
+                        <NavLink to="/login" onClick={closeDrawer}>Login</NavLink>
+                        <NavLink to="/register" onClick={closeDrawer}>Register</NavLink>
                       </div>
                     )}
                   </li>
@@ -135,80 +107,75 @@ const Navbar = () => {
               </div>
             </div>
           </div>
-          <h1 className="text-white font-bold text-2xl flex items-center gap-3">
-            {" "}
+          {/* Branding */}
+          <Link to="/" className="text-white font-bold text-2xl flex items-center gap-3" aria-label="PackNShip Home">
             <img
-              className="w-10 rounded-xl hidden md:block"
+              className="w-10 h-10 rounded-xl hidden md:block object-cover"
               src="https://i.ibb.co/wFpwy1dq/Gemini-Generated-Image-blwhytblwhytblwh.png"
-              alt=""
+              alt="PackNShip Logo"
+              loading="lazy"
             />
             PackNShip
-          </h1>
+          </Link>
         </div>
-        <div>
-          <ul className="hidden md:flex gap-5 font-bold">
-            <li>
-              <NavLink to="/" onClick={closeDrawer}>
-                Home
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/catagories" onClick={closeDrawer}>
-                Catagories
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/allProducts" onClick={closeDrawer}>
-                All Products
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/addProduct" onClick={closeDrawer}>
-                Add Product
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/myProducts" onClick={closeDrawer}>
-                My Products
-              </NavLink>
-            </li>
+        {/* Desktop Nav */}
+        <nav className="hidden md:block" aria-label="Primary">
+          <ul className="flex gap-5 font-bold">
+            {NAV_LINKS.map(l => (
+              <li key={l.to}>
+                <NavLink
+                  to={l.to}
+                  onClick={closeDrawer}
+                  className={({ isActive }) =>
+                    `transition-colors px-2 py-1 rounded-md hover:text-blue-300 ${
+                      isActive ? "text-blue-500" : "text-white"
+                    }`
+                  }
+                >
+                  {l.label}
+                </NavLink>
+              </li>
+            ))}
           </ul>
-        </div>
-        <div className="flex gap-5">
-          <div className="flex items-center gap-5">
-            <div className="indicator">
-              <span className="indicator-item badge badge-secondary">{user ? cartDatas?.length : "0"}</span>
-              <Link to="cart">
+        </nav>
+        {/* Right Section */}
+        <div className="flex items-center gap-6">
+          <div className="indicator">
+            {cartCount > 0 && (
+              <span className="indicator-item badge badge-secondary" aria-label={`Cart items: ${cartCount}`}>
+                {cartCount}
+              </span>
+            )}
+            <Link to="/cart" aria-label="Cart" className="p-1 rounded-lg hover:bg-white/10 focus:outline-none focus-visible:ring">
               <FaShoppingCart color="black" size={30} />
             </Link>
-            </div>
-            {user ? (
-              <div className="md:flex gap-5 items-center hidden">
-                <Link to="/profile">
-                  <img
-                    className="w-[50px] rounded-full"
-                    src={user?.photoURL}
-                    alt={user?.displayName}
-                  />
-                </Link>
-                <Link className="btn btn-primary rounded-4xl" onClick={logOut}>
-                  Log out
-                </Link>
-              </div>
-            ) : (
-              <div className="hidden md:flex gap-2 md:gap-5">
-                <Link className="btn btn-primary rounded-4xl" to="/login">
-                  Login
-                </Link>
-                <Link className="btn btn-primary rounded-4xl" to="/register">
-                  Register
-                </Link>
-              </div>
-            )}
           </div>
+          {user ? (
+            <div className="hidden md:flex items-center gap-4">
+              <Link to="/profile" aria-label="Profile" className="flex items-center">
+                {avatar}
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="btn btn-primary rounded-4xl"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="hidden md:flex gap-3">
+              <Link className="btn btn-primary rounded-4xl" to="/login">
+                Login
+              </Link>
+              <Link className="btn btn-outline rounded-4xl text-blue-600" to="/register">
+                Register
+              </Link>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
