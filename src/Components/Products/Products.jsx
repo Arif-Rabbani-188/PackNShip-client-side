@@ -57,7 +57,7 @@ const Products = () => {
                         <img src={product.image} alt={product.name} className="w-full h-48 object-cover rounded mb-3" />
                         <h2 className="text-lg font-bold mb-1 text-black">{product.name}</h2>
                         <p className="text-gray-500 mb-2">{product.category}</p>
-                        <p className="text-blue-600 font-semibold">${product.price}</p>
+                        <p className="text-blue-600 font-semibold">{product.price} Taka</p>
                     </div>
                 ))}
             </div>
