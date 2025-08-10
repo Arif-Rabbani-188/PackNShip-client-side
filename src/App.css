@@ -1,2 +1,15 @@
 @import "tailwindcss";
 @plugin "daisyui";
+html, body {
+  scroll-behavior: smooth;
+}
+
+html, body, #root {
+  height: 100%;
+}
+/* Avoid fixed headers covering anchors */
+:target { scroll-margin-top: 80px; }
+
+body {
+  overflow-y: auto;
+}
