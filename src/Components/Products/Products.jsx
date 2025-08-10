@@ -1,7 +1,17 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import FullScreenLoader from "../Loader/FullScreenLoader"; // adjust path if different
+import FullScreenLoader from "../Loader/FullScreenLoader";
+
+// Inline SVG fallback (no external domain -> avoids net::ERR_NAME_NOT_RESOLVED)
+const FALLBACK_IMG = `data:image/svg+xml;utf8,
+<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'>
+  <rect width='100%' height='100%' fill='%23f3f4f6'/>
+  <text x='50%' y='50%' font-size='28' font-family='Arial, sans-serif'
+        fill='%239ca3af' text-anchor='middle' dominant-baseline='middle'>
+    No Image
+  </text>
+</svg>`.replace(/\n/g, "").replace(/#/g, "%23");
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -9,7 +19,6 @@ const Products = () => {
   const [visibleCount, setVisibleCount] = useState(12);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,8 +37,7 @@ const Products = () => {
         setProducts(data.reverse());
       })
       .catch((err) => {
-        if (ignore) return;
-        if (axios.isCancel(err)) return;
+        if (ignore || axios.isCancel(err)) return;
         console.error("Error fetching products:", err);
         setError("Failed to load products. Please try again.");
       })
@@ -111,42 +119,45 @@ const Products = () => {
             No products found.
           </div>
         )}
-        {visibleProducts.map((product) => (
-          <div
-            key={product._id}
-            className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition border border-gray-100 flex flex-col"
-            onClick={() => navigate(`/allProducts/${product._id}`)}
-          >
-            <div className="relative">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-48 object-cover rounded mb-3"
-                loading="lazy"
-                onError={(e) => {
-                  e.currentTarget.src =
-                    "https://via.placeholder.com/400x300?text=No+Image";
-                }}
-              />
-              {product.category && (
-                <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                  {product.category}
-                </span>
-              )}
-            </div>
-            <h2 className="text-lg font-bold mb-1 text-black truncate">
-              {product.name}
-            </h2>
-            <p className="text-gray-500 mb-2 line-clamp-2 text-sm">
-              {product.short_description || "No description"}
-            </p>
-            <div className="mt-auto">
-              <p className="text-blue-600 font-semibold">
-                {product.price ? `${product.price} Taka` : "Price N/A"}
+        {visibleProducts.map((product) => {
+          const imgSrc = product.image || FALLBACK_IMG;
+          return (
+            <div
+              key={product._id}
+              className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition border border-gray-100 flex flex-col"
+              onClick={() => navigate(`/allProducts/${product._id}`)}
+            >
+              <div className="relative">
+                <img
+                  src={imgSrc}
+                  alt={product.name}
+                  className="w-full h-48 object-cover rounded mb-3 bg-gray-100"
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = FALLBACK_IMG;
+                  }}
+                />
+                {product.category && (
+                  <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                    {product.category}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-lg font-bold mb-1 text-black truncate">
+                {product.name}
+              </h2>
+              <p className="text-gray-500 mb-2 line-clamp-2 text-sm">
+                {product.short_description || "No description"}
               </p>
+              <div className="mt-auto">
+                <p className="text-blue-600 font-semibold">
+                  {product.price ? `${product.price} Taka` : "Price N/A"}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {visibleCount < filtered.length && !loading && (
