@@ -3,6 +3,7 @@ import { Outlet } from 'react-router';
 import Navbar from '../../Components/Navbar/Navbar';
 import Footer from '../../Components/Footerer/Footer';
 import FullScreenLoader from '../../Components/Loader/FullScreenLoader';
+import ScrollToTop from '../../Components/ScrollToTop.jsx';
 import { Authconext } from '../../Context/AuthContext/AuthContext';
 
 const Root = () => {
@@ -10,6 +11,7 @@ const Root = () => {
     return (
         <div className="min-h-screen flex flex-col">
             <Navbar />
+            <ScrollToTop />
             <div className="flex-1 w-full">
                 {loading ? <FullScreenLoader /> : <Outlet />}
             </div>
