@@ -3,6 +3,8 @@ import { useContext, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import { Authconext } from "../../Context/AuthContext/AuthContext";
 
+const API_BASE = "https://pick-ns-hiip-serversite.vercel.app/users";
+
 const Cart = () => {
   const { user, setUser, cartDatas, setCartDatas, refreshUser } = useContext(Authconext);
   const cartData = cartDatas || [];
@@ -10,57 +12,91 @@ const Cart = () => {
   const [localCart, setLocalCart] = useState(cartData);
   const [editIndex, setEditIndex] = useState(null);
   const [editQuantity, setEditQuantity] = useState(1);
+  const [loadingCart, setLoadingCart] = useState(true);
+  const [mutating, setMutating] = useState(false);
 
+  // Sync local mirror when context cart changes
   useEffect(() => {
     setLocalCart(cartData);
   }, [cartDatas]);
 
-  // On mount (and when user changes) ensure we have latest server cart
+  // Initial load / re-load on user change
   useEffect(() => {
-    if (user?.email) {
-      refreshUser(user.email);
+    const load = async () => {
+      if (!user?._id) {
+        setLoadingCart(false);
+        return;
+      }
+      setLoadingCart(true);
+      try {
+        // Prefer dedicated endpoint by id to guarantee latest
+        const res = await axios.get(`${API_BASE}/${user._id}`);
+        // Server may return full user doc (with cart)
+        if (res.data) {
+          const dbUser = res.data;
+          const serverCart = Array.isArray(dbUser.cart) ? dbUser.cart : [];
+            setCartDatas(serverCart);
+          setUser((prev) => prev ? { ...prev, ...dbUser, cart: serverCart } : dbUser);
+          setLocalCart(serverCart);
+        }
+      } catch (e) {
+        console.error("Failed to load cart:", e);
+      } finally {
+        setLoadingCart(false);
+      }
+    };
+    load();
+  }, [user?._id, setCartDatas, setUser]);
+
+  const patchCart = async (nextCart, successTitle) => {
+    if (!user?._id) return;
+    setMutating(true);
+    try {
+      const res = await axios.patch(`${API_BASE}/${user._id}`, {
+        cart: nextCart,
+        email: user.email, // helps backend email consistency check
+      });
+      if (res.data?.ok || res.status === 200) {
+        const updatedCart = res.data.cart ?? nextCart;
+        setCartDatas(updatedCart);
+        setLocalCart(updatedCart);
+        setUser((prev) => prev ? { ...prev, cart: updatedCart } : prev);
+        if (successTitle) {
+          Swal.fire({
+            title: successTitle,
+            icon: "success",
+            timer: 1100,
+            showConfirmButton: false,
+          });
+        }
+        refreshUser(user.email);
+      } else {
+        throw new Error(res.data?.message || "Unknown server response");
+      }
+    } catch (e) {
+      console.error("Cart patch error:", e);
+      Swal.fire({
+        title: "Error",
+        text: e?.response?.data?.message || e.message || "Failed to update cart",
+        icon: "error",
+      });
+    } finally {
+      setMutating(false);
     }
-  }, [user?.email]);
+  };
 
   const handleRemove = (indexToRemove) => {
     Swal.fire({
-      title: `Are you sure you want to remove this item?`,
+      title: "Remove this item?",
+      icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Remove",
-      icon: "warning",
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+    }).then((r) => {
+      if (!r.isConfirmed) return;
       const updatedCart = (cartDatas || []).filter((_, idx) => idx !== indexToRemove);
-      // Optimistically update UI
+      // optimistic
       setLocalCart(updatedCart);
-      setCartDatas(updatedCart);
-      setUser((prev) => ({ ...prev, cart: updatedCart }));
-      axios
-        .patch(
-          `https://pick-ns-hiip-serversite.vercel.app/users/${user._id}`,
-          { cart: updatedCart }
-        )
-        .then(() => {
-          Swal.fire({
-            title: "Removed",
-            icon: "success",
-            timer: 1200,
-            showConfirmButton: false,
-          });
-          refreshUser(user.email);
-        })
-        .catch((error) => {
-          console.error("Error updating cart:", error);
-          Swal.fire({
-            title: "Error",
-            text: "Failed to update cart. Restoring previous state.",
-            icon: "error",
-            draggable: false,
-          });
-          // Rollback
-          setLocalCart(cartDatas || []);
-          setCartDatas(cartDatas || []);
-        });
+      patchCart(updatedCart, "Removed");
     });
   };
 
@@ -70,23 +106,32 @@ const Cart = () => {
   };
 
   const handleSaveQuantity = (index) => {
-    const updatedCart = [...cartData];
-    updatedCart[index].quantity = Number(editQuantity);
-    axios
-      .patch(`https://pick-ns-hiip-serversite.vercel.app/users/${user._id}`, {
-        cart: updatedCart,
-      })
-      .then(() => {
-        setUser((prev) => ({ ...prev, cart: updatedCart }));
-        setCartDatas(updatedCart);
-        refreshUser(user.email);
-      })
-      .catch(() => {
-        // revert edit if server fails
-        setLocalCart(cartData);
-      });
+    const updated = [...localCart];
+    updated[index] = { ...updated[index], quantity: Number(editQuantity) };
     setEditIndex(null);
     setEditQuantity(1);
+    patchCart(updated, "Updated");
+  };
+
+  const handleCheckout = () => {
+    if (!cartData.length) {
+      Swal.fire({
+        title: "Cart empty",
+        icon: "info",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+      return;
+    }
+    Swal.fire({
+      title: "Proceed to checkout?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Checkout",
+    }).then((r) => {
+      if (!r.isConfirmed) return;
+      patchCart([], "Checkout successful");
+    });
   };
 
   const totalPrice = cartData.reduce(
@@ -94,51 +139,30 @@ const Cart = () => {
     0
   );
 
-  const handleCeckout = () => {
-    if (cartData.length === 0) {
-      Swal.fire({
-        title: "Your cart is empty",
-        text: "Please add items to your cart before checking out.",
-        icon: "info",
-        draggable: false,
-      });
-      return;
-    }
-
-    Swal.fire({
-      title: "Confirm Checkout",
-      text: "Are you sure you want to proceed with the checkout?",
-      showCancelButton: true,
-      confirmButtonText: "Checkout",
-      cancelButtonText: "Cancel",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        axios
-          .patch(`https://pick-ns-hiip-serversite.vercel.app/users/${user._id}`, { cart: [] })
-          .then(() => {
-            setCartDatas([]);
-            refreshUser(user.email);
-            Swal.fire({
-              title: "Checkout Successful",
-              text: "Thank you for your purchase!",
-              icon: "success",
-              draggable: false,
-            });
-          })
-          .catch((error) => {
-            console.error("Error during checkout:", error);
-            Swal.fire({
-              title: "Checkout Failed",
-              text: "Please try again later.",
-              icon: "error",
-              draggable: false,
-            });
-          });
-      }
-    });
+  // Inline component loader (not full-screen)
+  if (loadingCart) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-14 h-14 rounded-full border-4 border-purple-400 border-t-transparent animate-spin" />
+          <p className="text-sm text-gray-600 font-medium">Loading cart items...</p>
+          <div className="w-72 space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-6 rounded bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  console.log(user);
+  if (!user) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center text-gray-600">
+        Please log in to view your cart.
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full py-20 sm:py-24 bg-gradient-to-br from-blue-50 to-purple-100 px-0 sm:px-0">
@@ -146,6 +170,7 @@ const Cart = () => {
         <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-black drop-shadow">
           Your Shopping Cart
         </h2>
+
         {cartData.length === 0 ? (
           <div className="flex flex-col items-center justify-center mt-16 sm:mt-20">
             <svg
@@ -172,41 +197,30 @@ const Cart = () => {
               <table className="min-w-[900px] w-full bg-white rounded-xl shadow-lg text-sm sm:text-base">
                 <thead>
                   <tr>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Image
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Name
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Category
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Brand
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Description
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Buying Date (MM/DD/YYYY)
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Min. Qty
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Price
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Quantity
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold">
-                      Subtotal
-                    </th>
-                    <th className="px-2 sm:px-4 py-2 sm:py-3"></th>
+                    {[
+                      "Image",
+                      "Name",
+                      "Category",
+                      "Brand",
+                      "Description",
+                      "Buying Date (MM/DD/YYYY)",
+                      "Min. Qty",
+                      "Price",
+                      "Quantity",
+                      "Subtotal",
+                      "",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className="px-2 sm:px-4 py-2 sm:py-3 text-left text-black font-semibold"
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {cartData.map((item, index) => (
+                  {localCart.map((item, index) => (
                     <tr
                       key={index}
                       className="border-b last:border-b-0 hover:bg-purple-50 transition"
@@ -246,9 +260,9 @@ const Cart = () => {
                       <td className="px-2 sm:px-4 py-2 sm:py-3 text-black">
                         {item.price || "N/A"} Taka
                       </td>
-                      <td className="px-2 sm:px-4 py-2 sm:py-3 text-black flex items-center gap-2">
+                      <td className="px-2 sm:px-4 py-2 sm:py-3 text-black">
                         {editIndex === index ? (
-                          <>
+                          <div className="flex items-center gap-2">
                             <input
                               type="number"
                               min={item.minimum_selling_quantity || 1}
@@ -257,28 +271,31 @@ const Cart = () => {
                               className="w-16 px-2 py-1 border rounded"
                             />
                             <button
-                              className="bg-green-500 text-white px-2 py-1 rounded ml-2"
+                              disabled={mutating}
+                              className="bg-green-500 text-white px-2 py-1 rounded"
                               onClick={() => handleSaveQuantity(index)}
                             >
                               Save
                             </button>
                             <button
-                              className="bg-gray-300 text-black px-2 py-1 rounded ml-1"
+                              disabled={mutating}
+                              className="bg-gray-300 text-black px-2 py-1 rounded"
                               onClick={() => setEditIndex(null)}
                             >
                               Cancel
                             </button>
-                          </>
+                          </div>
                         ) : (
-                          <>
+                          <div className="flex items-center gap-2">
                             <span>{item.quantity || 1}</span>
                             <button
-                              className="bg-blue-500 text-white px-2 py-1 rounded ml-2"
+                              disabled={mutating}
+                              className="bg-blue-500 text-white px-2 py-1 rounded"
                               onClick={() => handleEdit(index, item.quantity)}
                             >
                               Edit
                             </button>
-                          </>
+                          </div>
                         )}
                       </td>
                       <td className="px-2 sm:px-4 py-2 sm:py-3 font-semibold text-black">
@@ -287,7 +304,8 @@ const Cart = () => {
                       </td>
                       <td className="px-2 sm:px-4 py-2 sm:py-3">
                         <button
-                          className="bg-red-500 hover:bg-red-600 text-white px-2 sm:px-3 py-1 rounded-lg shadow transition-colors duration-200 text-xs sm:text-base"
+                          disabled={mutating}
+                          className="bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white px-2 sm:px-3 py-1 rounded-lg shadow transition-colors duration-200 text-xs sm:text-base"
                           onClick={() => handleRemove(index)}
                         >
                           Remove
@@ -307,14 +325,15 @@ const Cart = () => {
                     <td className="px-2 sm:px-4 py-2 sm:py-3 font-bold text-base sm:text-lg text-black">
                       {totalPrice.toFixed(0)} Taka
                     </td>
-                    <td></td>
+                    <td />
                   </tr>
                 </tfoot>
               </table>
             </div>
+
             {/* Mobile Cards */}
             <div className="sm:hidden flex flex-col gap-4">
-              {cartData.map((item, index) => (
+              {localCart.map((item, index) => (
                 <div
                   key={index}
                   className="bg-white rounded-2xl shadow-xl p-4 flex flex-col gap-2 border border-purple-100 hover:shadow-2xl transition"
@@ -370,7 +389,7 @@ const Cart = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-black text-sm font-semibold">
-                        Quantity:
+                        Qty:
                       </span>
                       {editIndex === index ? (
                         <>
@@ -382,13 +401,15 @@ const Cart = () => {
                             className="w-16 px-2 py-1 border rounded"
                           />
                           <button
-                            className="bg-green-500 text-white px-2 py-1 rounded ml-2"
+                            disabled={mutating}
+                            className="bg-green-500 text-white px-2 py-1 rounded"
                             onClick={() => handleSaveQuantity(index)}
                           >
                             Save
                           </button>
                           <button
-                            className="bg-gray-300 text-black px-2 py-1 rounded ml-1"
+                            disabled={mutating}
+                            className="bg-gray-300 text-black px-2 py-1 rounded"
                             onClick={() => setEditIndex(null)}
                           >
                             Cancel
@@ -400,7 +421,8 @@ const Cart = () => {
                             {item.quantity || 1}
                           </span>
                           <button
-                            className="bg-blue-500 text-white px-2 py-1 rounded ml-2"
+                            disabled={mutating}
+                            className="bg-blue-500 text-white px-2 py-1 rounded"
                             onClick={() => handleEdit(index, item.quantity)}
                           >
                             Edit
@@ -418,7 +440,8 @@ const Cart = () => {
                       </span>
                     </div>
                     <button
-                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-lg shadow transition-colors duration-200 text-xs"
+                      disabled={mutating}
+                      className="bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white px-4 py-1 rounded-lg shadow transition-colors duration-200 text-xs"
                       onClick={() => handleRemove(index)}
                     >
                       Remove
@@ -426,31 +449,38 @@ const Cart = () => {
                   </div>
                 </div>
               ))}
-              {/* Total for mobile */}
+
+              {/* Total (mobile) */}
               <div className="bg-white rounded-xl shadow-lg p-4 flex justify-between items-center font-bold text-black text-base mt-2">
                 <span>Total:</span>
                 <span>{totalPrice.toFixed(0)} Taka</span>
               </div>
             </div>
+
             <div className="flex flex-col sm:flex-row sm:justify-end mt-6 sm:mt-8 gap-4 sm:gap-0">
               <button
-                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white font-bold py-3 px-6 sm:px-8 rounded-xl shadow-lg transition-all duration-200 text-base sm:text-lg flex items-center justify-center gap-2"
-                onClick={() => handleCeckout()}
+                disabled={!cartData.length || mutating}
+                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 disabled:opacity-50 text-white font-bold py-3 px-6 sm:px-8 rounded-xl shadow-lg transition-all duration-200 text-base sm:text-lg flex items-center justify-center gap-2"
+                onClick={handleCheckout}
               >
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m1-9h2a2 2 0 012 2v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7a2 2 0 012-2h2"
-                  />
-                </svg>
-                Checkout
+                {mutating ? "Processing..." : (
+                  <>
+                    <svg
+                      className="w-5 h-5 sm:w-6 sm:h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m5-9v9m4-9v9m1-9h2a2 2 0 012 2v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7a2 2 0 012-2h2"
+                      />
+                    </svg>
+                    Checkout
+                  </>
+                )}
               </button>
             </div>
           </div>
